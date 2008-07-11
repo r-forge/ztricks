@@ -1,0 +1,14 @@
+Package: Ztricks
+Version: 0.1-5
+Date: 2008-07-11
+Title: Non-formulaic random-effects terms in lmer and glmer
+Author: Carrie Wager and Douglas Bates
+Maintainer: Carrie Wager <carrie@precisionbioassay.com>
+Description: Extensions to the mixed modeling functions of the lme4
+ package. The "Z tricks" can express mixed models that cannot be
+ expressed in the formula language of lme4. 
+Depends: methods, R(>= 2.7.0), lme4 (>= 0.999375-22), Matrix(>= 0.999375-10)
+LazyLoad: yes
+LazyData: yes
+License: GPL (>=2)
+URL: http://ztricks.r-forge.r-project.org/

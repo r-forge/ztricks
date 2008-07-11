@@ -1,3 +1,5 @@
+library(Ztricks)
+data(sleepstudy, package = "lme4")
 mm <- as(sleepstudy$Subject,"sparseMatrix")
 mm@x <- as.double(sleepstudy$Days)
 
