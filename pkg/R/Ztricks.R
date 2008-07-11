@@ -1,4 +1,4 @@
-
+## Check the format of the additional Zt matrix slabs for consistency
 chkLen <- function(Znewi, n)
 {
     fl <- Znewi$fl
@@ -29,17 +29,16 @@ Ztricks <-
     if (!length(Znew)) {
         mc$Znew <- NULL
         mc[[1]] <- as.name("lmer")
-        return(eval(mc))
+        return(eval.parent(mc))
     }
-    stopifnot(length(formula <- as.formula(formula)) == 3)
-
-    fr <- lme4:::lmerFrames(mc, formula, contrasts) # model frame, X, etc.
-    FL <- lme4:::lmerFactorList(formula, fr$mf, 0L, 0L) # flist, Zt, cnames
-    Y <- as.double(fr$Y)
-
-    n <- length(Y)
+    mc$Znew <- NULL
+    mc$doFit <- FALSE
+    mc[[1]] <- as.name("lmer")
+    lf <- eval.parent(mc)
+    lapply(names(lf), function(nm) assign(nm, lf[[nm]]))
+    n <- length(lf$fr$Y)
+    FL <- lf$FL
     ntrm <- length(FL$trms)
-    browser()
     for (i in seq_along(Znew)) {
         Znewi <- Znew[[i]]
         chkLen(Znewi, n)
@@ -47,22 +46,14 @@ Ztricks <-
         fl <- Znewi$fl
         if (!(ff <- match(names(fl)[[1]], names(FL$fl), no = 0))) {
             FL$fl <- c(FL$fl, fl)
-            attr(FL$fl, "assign") <- c(attr(FL$fl, "assign"), length(FL$fl))
+            attr(lf$FL$fl, "assign") <- c(attr(FL$fl, "assign"), length(FL$fl))
         } else {
             attr(FL$fl, "assign") <- c(attr(FL$fl, "assign"), ff)
         }
     }
-    lme4:::lmer_finalize(mc, fr, FL, start, REML, verbose)
+    lf$FL <- FL
+    ans <- do.call(lme4:::lmer_finalize, lf)
+    ans@call <- match.call()
+    ans
 }
-
-mm <- as(sleepstudy$Subject,"sparseMatrix")
-mm@x <- as.double(sleepstudy$Days)
-
-Ztricks(Reaction~Days+(1|Subject),sleepstudy,
-  Znew=list(list(
-     fl=list(Subject=sleepstudy$Subject),
-     Zt=mm,
-     ST=matrix(0,1,1,dimnames=list("Days","Days"))
-     )))
-
 
