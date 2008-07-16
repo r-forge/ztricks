@@ -9,7 +9,7 @@
   terms of the model matrix.
 }
 \usage{
-Ztricks(formula, data, family = NULL, Znew = list(),
+Ztricks(formula, data, family = NULL, Znew = list(), pre = list(),
         REML = TRUE, start = NULL, nAGQ = 1, verbose = FALSE,
         subset, weights, na.action, offset, contrasts = NULL,
         model = TRUE, x = TRUE, ...)
@@ -23,6 +23,10 @@ Ztricks(formula, data, family = NULL, Znew = list(),
     \code{"\linkS4class{dgCMatrix}"}) of the transpose
     of the columns to be added to \code{Z} and \code{ST}, a dense matrix
     to be added to the \code{ST} list.}
+  \item{pre}{a named list of premultipliers for \code{Zt} and \code{A}
+    in particular random effects terms.  These premultipliers should be
+    \code{"\linkS4class{CsparseMatrix}"} objects.  Note that these
+    premultiply the transpose, \code{Zt}, of the model matrix.}
   \item{formula, data, family, REML, start, nAGQ,
     verbose, subset, weights, na.action, offset,
     contrasts, model, x, \dots}{Arguments for the corresponding call to

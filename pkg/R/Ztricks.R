@@ -20,25 +20,26 @@ chkLen <- function(Znewi, n)
 ## ST - dense matrix to be added to the ST list
 
 Ztricks <-
-    function(formula, data, family = NULL, Znew = list(),
+    function(formula, data, family = NULL, Znew = list(), pre = list(),
              REML = TRUE, start = NULL, nAGQ = 1, verbose = FALSE,
              subset, weights, na.action, offset, contrasts = NULL,
              model = TRUE, x = TRUE, ...)
 {
     mc <- match.call()
-    if (!length(Znew)) { # call lmer directly
+    if (!length(Znew) && !length(pre)) { # call lmer directly
         mc$Znew <- NULL
+        mc$pre <- NULL
         mc[[1]] <- as.name("lmer")
         return(eval.parent(mc))
     }
     
-    ## Call lmer without Znew and with doFit = FALSE
-    mc$Znew <- NULL
+    ## Call lmer without Znew and pre and with doFit = FALSE
+    mc$Znew <- mc$pre <- NULL
     mc$doFit <- FALSE
     mc[[1]] <- as.name("lmer")
     lf <- eval.parent(mc)
 
-    ## Check the elements of Znew and add them to the FL list
+                                        # Process elements of Znew
     n <- length(lf$fr$Y)
     FL <- lf$FL
     ntrm <- length(FL$trms)
@@ -57,6 +58,26 @@ Ztricks <-
             attr(FL$fl, "assign") <- c(attr(FL$fl, "assign"), ff)
         }
     }
+                                        # Process elements of pre
+    fl <- FL$fl
+    gfnms <- names(fl)                  # grouping factor names
+    for (nm in names(pre)) {
+        if (is.null(pp <- pre[[nm]]))
+            stop("NULL elements of pre no longer needed or supported")
+        gf_ind <- which(nm == gfnms)    # grouping factor index
+        if (length(gf_ind) != 1)
+            stop("Names of elements of pre must be grouping factors")
+        if (length(trm <- which(gf_ind == attr(fl, "assign"))) != 1)
+            stop(paste("Grouping factor", nm, "used in multiple or zero terms"))
+        Zt <- FL$trms[[trm]]$Zt
+        dims <- dim(Zt)
+        dd <- dim(pp <- as(pp, "CsparseMatrix"))
+        stopifnot(dd[1] == dd[2],    # do we really need it to be square?
+                  dd[2] == dims[1])
+        FL$trms[[trm]]$Zt <- pp %*% Zt
+        FL$trms[[trm]]$A <- pp %*% FL$trms[[trm]]$A
+    }
+    
     lf$FL <- FL
     ans <- do.call(if (!is.null(lf$glmFit))
                    lme4:::glmer_finalize else lme4:::lmer_finalize, lf)
